@@ -17,7 +17,7 @@ The preventive service threshold reported for this Smart EQ 453 counter is **10,
 
 When the operating-hours threshold triggers the message, it acts as a **preventive maintenance warning**. Owners have reported that the old pump can still run and circulate coolant when the warning appears. Confirm the cause before treating the warning as counter-related, and replace the pump and verify circulation before resetting the counter.
 
-The reset writes only the pump operating-hours counter. Pump performance diagnostics and coolant-temperature warnings remain active. A pump fault or overheating can still trigger a warning after a successful reset.
+Resetting the operating-hours counter clears the hours-based warning while keeping pump performance diagnostics and coolant-temperature monitoring active. If the replacement pump develops a fault or the coolant overheats later, the vehicle can still alert you.
 
 ## Usage
 
