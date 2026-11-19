@@ -6,6 +6,8 @@ Read and reset the driving-mode coolant pump counter, `V_Timer_DrivWEP_ON` (DID 
 
 XENTRY fault **`P0463F1`** refers to the driving-mode coolant pump. The dashboard may display **“Malfunction – Visit workshop”** with a **yellow warning lamp**. The same warning can have other causes. Check the exact fault code in N127.
 
+![Smart EQ instrument cluster showing “Malfunction – Visit workshop” and the yellow warning lamp](dashboard-warning.jpg)
+
 - [Owner's manual for the Smart EQ Forfour, printed page 184](https://moba.i.mercedes-benz.com/markets-smart/ece-row/baix/cars/smart-eq-forfour-453_2018_c/en_GB/downloads/12_17/BA_smart_453_09_AEJ2017-1b_en_GB.pdf)
 - [Dashboard photo showing the message and yellow lamp, German display](https://www.smart-emotion.de/wiki/entry/367-was-tun-bei-st%C3%B6rung-werkstatt-aufsuchen/)
 
