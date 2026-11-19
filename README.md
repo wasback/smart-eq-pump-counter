@@ -11,6 +11,14 @@ XENTRY fault **`P0463F1`** refers to the driving-mode coolant pump. The dashboar
 - [Owner's manual for the Smart EQ Forfour, printed page 184](https://moba.i.mercedes-benz.com/markets-smart/ece-row/baix/cars/smart-eq-forfour-453_2018_c/en_GB/downloads/12_17/BA_smart_453_09_AEJ2017-1b_en_GB.pdf)
 - [Dashboard photo showing the message and yellow lamp, German display](https://www.smart-emotion.de/wiki/entry/367-was-tun-bei-st%C3%B6rung-werkstatt-aufsuchen/)
 
+## The 10,000-hour service counter
+
+The preventive service threshold reported for this Smart EQ 453 counter is **10,000 pump operating hours (36,000,000 seconds)**. The vehicle tested here had already crossed that threshold when the counter was read. [Smart EQ owner reports](https://www.smart-emotion.de/forum/thread/7996-fehler-p0463f1-kann-wer-mit-ddt4all-im-raum-33100-paderborn-helfen/)
+
+When the operating-hours threshold triggers the message, it acts as a **preventive maintenance warning**. Owners have reported that the old pump can still run and circulate coolant when the warning appears. Confirm the cause before treating the warning as counter-related, and replace the pump and verify circulation before resetting the counter.
+
+The reset writes only the pump operating-hours counter. Pump performance diagnostics and coolant-temperature warnings remain active. A pump fault or overheating can still trigger a warning after a successful reset.
+
 ## Usage
 
 Use **32-bit Python 3.8 or later on Windows** and install the DrewTech J2534 driver separately. Connect the Mongoose, turn on the ignition, and close XENTRY. Run these commands with the 32-bit Python interpreter.
