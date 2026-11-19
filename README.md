@@ -26,6 +26,17 @@ python .\smart_eq_pump_counter.py --read
 python .\smart_eq_pump_counter.py --reset-after-pump-replacement
 ```
 
+## Using a different J2534 adapter or DLL
+
+Install the driver from your adapter manufacturer. If it exposes a compatible J2534 04.04 DLL, pass its full path with `--dll`. Match the Python interpreter architecture to the DLL (32-bit Python for a 32-bit DLL). This script currently requires 32-bit Python.
+
+```powershell
+python .\smart_eq_pump_counter.py --dll "C:\path\to\vendor-j2534.dll" --check-driver
+python .\smart_eq_pump_counter.py --dll "C:\path\to\vendor-j2534.dll" --read
+```
+
+An AI coding assistant can help adapt the script. Give it the adapter model, the manufacturer's J2534 documentation, and the driver DLL path and architecture. Ask it to preserve the diagnostic payloads and verify the DLL exports, CAN channel and ISO-TP behavior. Start with `--check-driver` and a successful `--read` on N127 before attempting the reset. A successful DLL load alone does not confirm vehicle communication. Adapters that only expose an ELM327 serial interface need a different transport.
+
 ## Verified diagnostic sequence
 
 J2534 ISO 15765 at **500 kbit/s**. CAN request ID **`0x7E4`**, CAN response ID **`0x7EC`**. The bytes below are diagnostic payloads before ISO-TP framing.
