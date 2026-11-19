@@ -41,11 +41,11 @@ def counter_payload(data):
     if payload.startswith(b"\x7f\x22") and len(payload) >= 3:
         if payload[2] == 0x78:  # Response pending
             return None
-        raise RuntimeError(f"Lecture refusee par le N127 : NRC 0x{payload[2]:02X}")
+        raise RuntimeError(f"N127 refused the read request: NRC 0x{payload[2]:02X}")
     if not payload.startswith(b"\x62\x35\x31"):
         return None
     if len(payload) != 7:
-        raise RuntimeError(f"Longueur de reponse inattendue : {payload.hex(' ')}")
+        raise RuntimeError(f"Unexpected response length: {payload.hex(' ')}")
     return payload[3:]
 
 
@@ -93,7 +93,7 @@ def read_counter(dll, baud):
                 count = U32(1)
                 checked(dll, "PassThruWriteMsgs", channel, ct.byref(request), ct.byref(count), 1000)
                 if count.value != 1:
-                    raise RuntimeError("La DLL ne confirme pas l'envoi de la requete.")
+                    raise RuntimeError("The DLL did not confirm transmission.")
                 end = time.monotonic() + 4
                 while time.monotonic() < end:
                     reply, count = Message(), U32(1)
@@ -104,7 +104,7 @@ def read_counter(dll, baud):
                             return result
                     if status not in (0, 0x09, 0x10):  # timeout / buffer empty are normal
                         raise RuntimeError(f"PassThruReadMsgs: J2534 0x{status:02X}")
-                raise RuntimeError("Aucune reponse au DID 0x3531 sur le CAN OBD standard.")
+                raise RuntimeError("No response for DID 0x3531 on standard OBD CAN.")
             finally:
                 dll.PassThruStopMsgFilter(channel, filter_id)
         finally:
@@ -126,7 +126,7 @@ def self_test():
         assert "0x31" in str(error)
     else:
         raise AssertionError("Negative response unexpectedly accepted")
-    print("Autotest hors vehicule OK.")
+    print("Offline self-test passed.")
 
 
 def exchange(dll, channel, payload, positive):
@@ -134,7 +134,7 @@ def exchange(dll, channel, payload, positive):
     count = U32(1)
     checked(dll, "PassThruWriteMsgs", channel, ct.byref(request), ct.byref(count), 1000)
     if count.value != 1:
-        raise RuntimeError("Envoi non confirme par le pilote.")
+        raise RuntimeError("The driver did not confirm transmission.")
     expires = time.monotonic() + 4
     while time.monotonic() < expires:
         reply, count = Message(), U32(1)
@@ -150,37 +150,37 @@ def exchange(dll, channel, payload, positive):
         if body.startswith(bytes((0x7F, payload[0]))) and len(body) >= 3:
             if body[2] == 0x78:
                 continue
-            raise RuntimeError(f"Reponse negative N127 : {body.hex(' ').upper()}")
+            raise RuntimeError(f"Negative response from N127: {body.hex(' ').upper()}")
         if body.startswith(positive):
             return body
-    raise RuntimeError(f"Aucune reponse a {payload[:3].hex(' ').upper()}.")
+    raise RuntimeError(f"No response to {payload[:3].hex(' ').upper()}.")
 
 
 def read(dll, channel):
     body = exchange(dll, channel, READ_COUNTER, bytes.fromhex("62 35 31"))
     if len(body) != 7:
-        raise RuntimeError("Longueur de lecture inattendue.")
+        raise RuntimeError("Unexpected counter response length.")
     return body[3:]
 
 
 def run(dll, channel):
     before = read(dll, channel)
-    print(f"Avant : {before.hex(' ').upper()}", flush=True)
-    backup = Path.cwd() / ("compteur-pompe-" + datetime.now().strftime("%Y%m%d-%H%M%S-%f") + ".txt")
-    backup.write_text(f"N127 DID 3531 avant intervention: {before.hex(' ').upper()}\n", encoding="ascii")
-    print(f"Sauvegarde : {backup}", flush=True)
+    print(f"Before: {before.hex(' ').upper()}", flush=True)
+    backup = Path.cwd() / ("pump-counter-" + datetime.now().strftime("%Y%m%d-%H%M%S-%f") + ".txt")
+    backup.write_text(f"N127 DID 3531 before reset: {before.hex(' ').upper()}\n", encoding="ascii")
+    print(f"Backup: {backup}", flush=True)
     session = exchange(dll, channel, bytes.fromhex("10 C0"), bytes.fromhex("50 C0"))
-    print(f"Session : {session.hex(' ').upper()}", flush=True)
+    print(f"Session: {session.hex(' ').upper()}", flush=True)
     try:
         result = exchange(dll, channel, bytes.fromhex("2E 35 31 00 00 00 00"), bytes.fromhex("6E 35 31"))
-        print(f"Accuse d'ecriture : {result.hex(' ').upper()}", flush=True)
+        print(f"Write acknowledged: {result.hex(' ').upper()}", flush=True)
     finally:
         after = read(dll, channel)
-        print(f"Apres : {after.hex(' ').upper()}", flush=True)
+        print(f"After: {after.hex(' ').upper()}", flush=True)
         with backup.open("a", encoding="ascii") as log:
-            log.write(f"N127 DID 3531 apres tentative: {after.hex(' ').upper()}\n")
+            log.write(f"N127 DID 3531 after reset attempt: {after.hex(' ').upper()}\n")
     if not 0 <= int.from_bytes(after, "big") <= 16:
-        raise RuntimeError("La relecture ne confirme pas la remise a zero.")
+        raise RuntimeError("The readback did not confirm the reset.")
 
 
 def reset_counter(dll, baud):
@@ -216,20 +216,20 @@ def main():
         self_test()
         return
     if sys.platform != "win32" or ct.sizeof(ct.c_void_p) != 4:
-        raise RuntimeError("Utiliser Python Windows 32 bits pour charger monpj432.dll.")
+        raise RuntimeError("Use 32-bit Python for Windows to load monpj432.dll.")
     path = args.dll.resolve(strict=True)
     with os.add_dll_directory(str(path.parent)):
         dll = ct.WinDLL(str(path))
         configure_api(dll)
         if args.check_driver:
-            print(f"DLL chargee, exports J2534 disponibles : {path}")
+            print(f"DLL loaded and J2534 exports available: {path}")
             return
         if args.reset_after_pump_replacement:
             reset_counter(dll, 500000)
             return
         raw = read_counter(dll, 500000)
-    print(f"Reponse UDS : 62 35 31 {raw.hex(' ').upper()}")
-    print(f"Compteur brut uint32 big-endian : {int.from_bytes(raw, 'big')} (unite non confirmee)")
+    print(f"UDS response: 62 35 31 {raw.hex(' ').upper()}")
+    print(f"Raw big-endian uint32 counter: {int.from_bytes(raw, 'big')} (unit unconfirmed)")
 
 
 if __name__ == "__main__":
@@ -237,4 +237,3 @@ if __name__ == "__main__":
         main()
     except (OSError, RuntimeError) as error:
         sys.exit(str(error))
-
